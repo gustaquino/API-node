@@ -1,7 +1,7 @@
-    import { createServer } from 'node:http'
+import { fastify } from 'fastify'
 
-    const server = createServer(() => {
-      console.log('server created')
-    })
+const server = fastify()
 
-    server.listen(3333)
+server.listen({
+  port: 3333,
+})
