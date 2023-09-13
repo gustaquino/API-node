@@ -1,0 +1,11 @@
+POST http://localhost:3333/fotos
+Content-Type: application/json
+
+{
+  "title": "foto",
+  "description": "foto",
+  "size": 100
+}
+
+
+GET http://localhost:3333/fotos

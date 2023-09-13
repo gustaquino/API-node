@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/gustaquino/API-node#readme",
   "dependencies": {
-    "fastify": "^4.23.0"
+    "fastify": "^4.23.0",
+    "fastify-formbody": "^5.3.0"
   }
 }
