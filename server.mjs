@@ -1,19 +1,11 @@
 import { fastify } from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import databaseMemory from './database-memory.mjs';
-
-const DatabaseMemory = databaseMemory;
-
-class MyDatabaseMemory extends DatabaseMemory {
-  constructor() {
-    super()
-  }
-}
+import DatabaseMemory from './database-memory.mjs';
 
 const server = fastify();
 
 server.register(fastifyPlugin((instance, opts, done) => {
-  instance.addContentTypeParser('application/json', { parseAs: 'string' }, function (req, body, done) {
+  instance.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
     try {
       const parsedBody = JSON.parse(body);
       done(null, parsedBody);
@@ -26,7 +18,15 @@ server.register(fastifyPlugin((instance, opts, done) => {
   done();
 }));
 
-const database = new MyDatabaseMemory();
+const database = new DatabaseMemory();
+
+server.setErrorHandler((error, request, reply) => {
+  reply.status(error.statusCode || 500).send({
+    statusCode: error.statusCode || 500,
+    error: error.name || 'Internal Server Error',
+    message: error.message || 'An error occurred on the server.',
+  });
+});
 
 server.post('/fotos', {
   schema: {
@@ -43,41 +43,43 @@ server.post('/fotos', {
 }, async (request, reply) => {
   try {
     const { title, description, size } = request.body;
-    console.log('Raw Request Body:', request.body.toString());
     const foto = {
       title,
       description,
       size,
     };
 
-    database.create(foto);
+    await database.create(foto);
 
     return reply.status(201).send();
   } catch (error) {
-    reply.status(400).send({
-      statusCode: 400,
-      error: 'Bad Request',
-      message: 'Invalid JSON data in the request body.',
-    });
+    throw error;
   }
 });
 
-server.get('/fotos', () => {
-  const fotos = database.list()
-  return fotos
-  });
+server.get('/fotos', async () => {
+  const fotos = await database.list();
+  return fotos;
+});
 
 server.put('/fotos/:id', () => {
-  return 'something'
-})
+  return 'something';
+});
 
 server.delete('/fotos/:id', () => {
-  return 'something'
-})
+  return 'something';
+});
 
+const start = async () => {
+  try {
+    await server.listen({
+      port: 3333
+    });
+    console.log('Server is running on port 3333');
+  } catch (err) {
+    console.error('Error starting the server:', err);
+    process.exit(1);
+  }
+};
 
-server.listen({
-  port: 3333,
-})
-
-console.log('Server is running on port 3333');
+start();
