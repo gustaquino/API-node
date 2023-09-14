@@ -74,8 +74,12 @@ database.update(fotosId, {
   return reply.status(204).send()
 });
 
-server.delete('/fotos/:id', () => {
-  return 'something';
+server.delete('/fotos/:id', (request, reply) => {
+  const videoId = request.params.id
+  
+  database.delete(videoId)
+  
+  return reply.status(204).send()
 });
 
 const start = async () => {
