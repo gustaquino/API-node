@@ -4,7 +4,7 @@ export default class DatabaseMemory {
   #fotos = new Map();
 
   list() {
-    return Array.from(this.#fotos.values())
+    return Array.from(this.#fotos.entries())
   }
 
   create(foto) {

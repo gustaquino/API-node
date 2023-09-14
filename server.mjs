@@ -62,8 +62,16 @@ server.get('/fotos', async () => {
   return fotos;
 });
 
-server.put('/fotos/:id', () => {
-  return 'something';
+server.put('/fotos/:id', (request, reply) => {
+  const fotosId = request.params.id
+  const { title, description, size } = request.body;
+
+database.update(fotosId, {
+    title,
+    description,
+    size,
+  })
+  return reply.status(204).send()
 });
 
 server.delete('/fotos/:id', () => {
