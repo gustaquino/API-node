@@ -4,7 +4,15 @@ export default class DatabaseMemory {
   #fotos = new Map();
 
   list() {
-    return Array.from(this.#fotos.entries())
+    return Array.from(this.#fotos.entries()).map((fotoArray) => {
+      const id = fotoArray[0]
+      const data =  fotoArray[1]
+
+      return {
+        id,
+        ...data,
+      }
+    });
   }
 
   create(foto) {
@@ -14,10 +22,14 @@ export default class DatabaseMemory {
   }
 
   update(id, foto) {
-    this.#fotos.set(id, foto);
+    const fotoId = id;
+
+    this.#fotos.set(fotoId, foto);
   }
 
   delete(id) {
-    this.#fotos.delete(id);
+    const fotoId = id;
+
+    this.#fotos.delete(fotoId);
   }
 }
