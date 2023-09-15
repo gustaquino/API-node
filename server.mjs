@@ -1,14 +1,14 @@
-import { fastify } from 'fastify';
+import fastify from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 import DatabaseMemory from './database-memory.mjs';
 
 const server = fastify();
 
+// Register a plugin to parse JSON bodies
 server.register(fastifyPlugin((instance, opts, done) => {
   instance.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
     try {
-      const parsedBody = JSON.parse(body);
-      done(null, parsedBody);
+      done(null, JSON.parse(body));
     } catch (err) {
       err.statusCode = 400;
       done(err, undefined);
@@ -18,7 +18,9 @@ server.register(fastifyPlugin((instance, opts, done) => {
   done();
 }));
 
+
 const database = new DatabaseMemory();
+
 
 server.setErrorHandler((error, request, reply) => {
   reply.status(error.statusCode || 500).send({
@@ -27,6 +29,7 @@ server.setErrorHandler((error, request, reply) => {
     message: error.message || 'An error occurred on the server.',
   });
 });
+
 
 server.post('/fotos', {
   schema: {
@@ -41,57 +44,74 @@ server.post('/fotos', {
     },
   },
 }, async (request, reply) => {
-  try {
-    const { title, description, size } = request.body;
-    const foto = {
-      title,
-      description,
-      size,
-    };
 
-    await database.create(foto);
-
-    return reply.status(201).send();
-  } catch (error) {
-    throw error;
-  }
-});
-
-server.get('/fotos', async () => {
-  const fotos = await database.list();
-  return fotos;
-});
-
-server.put('/fotos/:id', (request, reply) => {
-  const fotosId = request.params.id
   const { title, description, size } = request.body;
 
-database.update(fotosId, {
+ 
+  const foto = {
     title,
     description,
     size,
-  })
-  return reply.status(204).send()
+  };
+
+
+  await database.create(foto);
+
+
+  reply.status(201).send();
 });
 
-server.delete('/fotos/:id', (request, reply) => {
-  const videoId = request.params.id
-  
-  database.delete(videoId)
-  
-  return reply.status(204).send()
+
+server.get('/fotos', async () => {
+
+  const fotos = await database.list();
+
+
+  return fotos;
 });
 
-const start = async () => {
+
+server.put('/fotos/:id', async (request, reply) => {
+
+  const fotoId = request.params.id;
+
+
+  const { title, description, size } = request.body;
+
+
+  await database.update(fotoId, {
+    title,
+    description,
+    size,
+  });
+
+
+  reply.status(204).send();
+});
+
+
+server.delete('/fotos/:id', async (request, reply) => {
+
+  const fotoId = request.params.id;
+
+
+  await database.delete(fotoId);
+
+
+  reply.status(204).send();
+});
+
+
+async function start() {
   try {
     await server.listen({
-      port: 3333
+      port: 3333,
     });
     console.log('Server is running on port 3333');
   } catch (err) {
     console.error('Error starting the server:', err);
     process.exit(1);
   }
-};
+}
 
 start();
