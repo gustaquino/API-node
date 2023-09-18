@@ -21,11 +21,13 @@ export default class DatabasePostgres {
     await sql`insert into fotos (id, title, description, size) VALUES (${fotoId},  ${title}, ${description}, ${size})`
   }
 
-  update(id, foto) {
-
+ async update(id, foto) {
+    const { title, description, size } = foto
+ 
+    await sql`update fotos set title = ${title}, description = ${description}, size = ${size} WHERE ID = ${id}`
   }
 
-  delete(id) {
+  async delete(id) {
 
   }
 }
