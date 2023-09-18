@@ -62,9 +62,11 @@ server.post('/fotos', {
 });
 
 
-server.get('/fotos', async () => {
+server.get('/fotos', async (request) => {
+const search = request.query.search
 
-  const fotos = await database.list();
+console.log(search)
+  const fotos = await database.list(search);
 
 
   return fotos;

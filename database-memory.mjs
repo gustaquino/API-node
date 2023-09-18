@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 export default class DatabaseMemory {
   #fotos = new Map();
 
-  list() {
+  list(search) {
     return Array.from(this.#fotos.entries()).map((fotoArray) => {
       const id = fotoArray[0]
       const data =  fotoArray[1]
@@ -12,7 +12,12 @@ export default class DatabaseMemory {
         id,
         ...data,
       }
-    });
+    }).filter(foto => {
+      if (search) {
+        return foto.title.includes(search)
+      }
+      return true
+    })
   }
 
   create(foto) {
