@@ -108,7 +108,7 @@ server.delete('/fotos/:id', async (request, reply) => {
 async function start() {
   try {
     await server.listen({
-      port: 3333,
+      port: process.env.PORT ?? 3333,
     });
     console.log('Server is running on port 3333');
   } catch (err) {
