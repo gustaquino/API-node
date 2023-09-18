@@ -1,6 +1,7 @@
 import fastify from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-import DatabaseMemory from './database-memory.mjs';
+// import DatabaseMemory from './database-memory.mjs';
+import DatabasePostgres from './database-postgres.mjs';
 
 const server = fastify();
 
@@ -19,7 +20,7 @@ server.register(fastifyPlugin((instance, opts, done) => {
 }));
 
 
-const database = new DatabaseMemory();
+const database = new DatabasePostgres();
 
 
 server.setErrorHandler((error, request, reply) => {
