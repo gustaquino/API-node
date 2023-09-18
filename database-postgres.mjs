@@ -28,6 +28,6 @@ export default class DatabasePostgres {
   }
 
   async delete(id) {
-
+    await sql`delete from fotos where id = ${id}`
   }
 }
