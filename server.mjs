@@ -1,6 +1,7 @@
 import fastify from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
 // import DatabaseMemory from './database-memory.mjs';
+import 'dotenv/config'
 import DatabasePostgres from './database-postgres.mjs';
 
 const server = fastify();
