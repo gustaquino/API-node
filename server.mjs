@@ -1,13 +1,10 @@
 import fastify from 'fastify';
 import fastifyPlugin from 'fastify-plugin';
-// import DatabaseMemory from './database-memory.mjs';
-import 'dotenv/config'
+import 'dotenv/config';
 import DatabasePostgres from './database-postgres.mjs';
 
-const server = fastify();
-
-// Register a plugin to parse JSON bodies
-server.register(fastifyPlugin((instance, opts, done) => {
+// Parse JSON bodies
+const jsonBodyParser = new fastifyPlugin((instance, opts, done) => {
   instance.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
     try {
       done(null, JSON.parse(body));
@@ -18,93 +15,88 @@ server.register(fastifyPlugin((instance, opts, done) => {
   });
 
   done();
-}));
-
-
-const database = new DatabasePostgres();
-
-
-server.setErrorHandler((error, request, reply) => {
-  reply.status(error.statusCode || 500).send({
-    statusCode: error.statusCode || 500,
-    error: error.name || 'Internal Server Error',
-    message: error.message || 'An error occurred on the server.',
-  });
 });
 
+// Handle errors
+const errorHandler = new fastifyPlugin((instance, opts, done) => {
+  instance.setErrorHandler((error, request, reply) => {
+    reply.status(error.statusCode || 500).send({
+      statusCode: error.statusCode || 500,
+      error: error.name || 'Internal Server Error',
+      message: error.message || 'An error occurred on the server.',
+    });
+  });
 
-server.post('/fotos', {
-  schema: {
-    body: {
-      type: 'object',
-      required: ['title', 'description', 'size'],
-      properties: {
-        title: { type: 'string' },
-        description: { type: 'string' },
-        size: { type: 'number' },
-      },
-    },
-  },
-}, async (request, reply) => {
+  done();
+});
 
-  const { title, description, size } = request.body;
+// Create, list, update, and delete fotos
+class FotoService {
+  constructor(database) {
+    this.database = database;
+  }
 
- 
-  const foto = {
-    title,
-    description,
-    size,
-  };
+  async create(foto) {
+    await this.database.create(foto);
+  }
 
+  async list(search) {
+    return await this.database.list(search);
+  }
 
-  await database.create(foto);
+  async update(fotoId, foto) {
+    await this.database.update(fotoId, foto);
+  }
 
+  async delete(fotoId) {
+    await this.database.delete(fotoId);
+  }
+}
+
+const server = fastify();
+
+// Register the JSON body parser plugin
+server.register(jsonBodyParser);
+
+// Register the error handler plugin
+server.register(errorHandler);
+
+// Create a FotoService
+const fotoService = new FotoService(database);
+
+// Register routes for creating, listing, updating, and deleting fotos
+server.post('/fotos', async (request, reply) => {
+  const foto = request.body;
+
+  await fotoService.create(foto);
 
   reply.status(201).send();
 });
 
-
 server.get('/fotos', async (request) => {
-const search = request.query.search
+  const search = request.query.search;
 
-console.log(search)
-  const fotos = await database.list(search);
-
+  const fotos = await fotoService.list(search);
 
   return fotos;
 });
 
-
 server.put('/fotos/:id', async (request, reply) => {
-
   const fotoId = request.params.id;
+  const foto = request.body;
 
-
-  const { title, description, size } = request.body;
-
-
-  await database.update(fotoId, {
-    title,
-    description,
-    size,
-  });
-
+  await fotoService.update(fotoId, foto);
 
   reply.status(204).send();
 });
-
 
 server.delete('/fotos/:id', async (request, reply) => {
-
   const fotoId = request.params.id;
 
-
-  await database.delete(fotoId);
-
+  await fotoService.delete(fotoId);
 
   reply.status(204).send();
 });
-
 
 async function start() {
   try {
