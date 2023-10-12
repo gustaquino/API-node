@@ -30,6 +30,8 @@ const errorHandler = new fastifyPlugin((instance, opts, done) => {
   done();
 });
 
+const database = new DatabasePostgres();
+
 // Create, list, update, and delete fotos
 class FotoService {
   constructor(database) {
